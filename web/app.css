@@ -1,0 +1,155 @@
+/* 密藏阁 · 国风双主题（宣纸 / 玄墨） */
+:root {
+  --bg: #f5efe2; --card: #fcf9f1; --ink: #2e2b23; --soft: #6e6858;
+  --border: #ddd3bf; --seal: #a53c2a; --mark: rgba(165,60,42,.14);
+  --fs: 19px;
+  --serif: "LXGW WenKai", "Noto Serif SC", "Noto Serif CJK SC", serif;
+}
+[data-theme="ink"] {
+  --bg: #000000; --card: #14120d; --ink: #e6ddc8; --soft: #8a8271;
+  --border: #2b2820; --seal: #c85a42; --mark: rgba(200,90,66,.22);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--serif); overflow-x: clip; }
+body { min-height: 100dvh; line-break: strict; }
+
+/* ============ 顶栏 ============ */
+.appbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 6px;
+  padding: calc(env(safe-area-inset-top) + 8px) 14px 8px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.appbar-title { flex: 1; font-size: 17px; font-weight: 700; letter-spacing: 4px; }
+.iconbtn { background: none; border: none; color: var(--ink); font-size: 20px;
+  width: 38px; height: 38px; border-radius: 50%; cursor: pointer; font-family: inherit; }
+.iconbtn:active { background: var(--mark); }
+.back { font-size: 26px; line-height: 1; }
+
+/* ============ 主区 ============ */
+#main { padding: 0 16px calc(env(safe-area-inset-bottom) + 84px); max-width: 720px; margin: 0 auto; }
+.view { animation: fadein .25s ease; }
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+
+.sec-label {
+  margin: 22px 2px 10px; font-size: 13px; color: var(--soft);
+  letter-spacing: 5px; display: flex; align-items: center; gap: 8px;
+}
+.sec-label::before { content: ''; width: 7px; height: 7px; background: var(--seal); }
+
+/* ============ 品牌 ============ */
+.brand { text-align: center; padding: 26px 0 4px; }
+.brand-seal { width: 74px; height: 74px; margin: 0 auto 14px; background: var(--seal);
+  border-radius: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  padding: 7px; transform: rotate(-2deg); box-shadow: 0 3px 14px rgba(0,0,0,.18); }
+.brand-seal span { display: grid; place-items: center; color: #fff; font-size: 22px; font-weight: 700; }
+.brand-name { margin: 0; font-size: 30px; letter-spacing: 10px; text-indent: 10px; }
+.brand-sub { margin: 10px 0 0; font-size: 12.5px; color: var(--soft); line-height: 1.8; }
+
+/* ============ 目录 ============ */
+.volgroup { margin: 14px 0; }
+.volhead {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 12px 4px 10px; cursor: pointer; user-select: none;
+  border-bottom: 1px solid var(--border);
+}
+.volhead b { font-size: 16px; letter-spacing: 2px; }
+.volhead small { color: var(--soft); font-size: 12px; }
+.volbody { display: none; }
+.volgroup.open .volbody { display: block; }
+.volgroup.open .volhead { border-bottom-color: transparent; }
+.work {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 11px 6px; border-bottom: 1px solid var(--border); cursor: pointer;
+}
+.work:active { background: var(--mark); }
+.tno { font-size: 12px; color: var(--seal); font-weight: 700; min-width: 52px; }
+.tname { flex: 1; font-size: 15.5px; }
+.tmeta { font-size: 11.5px; color: var(--soft); white-space: nowrap; }
+
+/* ============ 阅读器 ============ */
+.reader-tools {
+  display: flex; gap: 8px; align-items: center;
+  padding: 10px 0; position: sticky; top: 54px; z-index: 10;
+  background: var(--bg);
+}
+.toolbtn { font-family: inherit; font-size: 13px; color: var(--soft);
+  background: var(--card); border: 1px solid var(--border); border-radius: 4px;
+  padding: 5px 10px; cursor: pointer; }
+.toolbtn.on { color: var(--seal); border-color: var(--seal); }
+#juan-select { margin-left: auto; font-family: inherit; font-size: 13px;
+  background: var(--card); color: var(--ink); border: 1px solid var(--border);
+  border-radius: 4px; padding: 5px 8px; max-width: 46%; }
+.reader { font-size: var(--fs); line-height: 1.95; letter-spacing: .02em;
+  padding: 4px 2px 30px; }
+.reader p { margin: 0 0 1.1em; text-align: justify; }
+.reader .doc-title { font-size: 1.25em; font-weight: 700; letter-spacing: 3px;
+  text-align: center; margin: .4em 0 1em; }
+.reader .byline { text-align: center; color: var(--soft); font-size: .82em; }
+.reader h3 { font-size: 1.08em; letter-spacing: 2px; margin: 1.6em 0 .8em;
+  padding-left: 10px; border-left: 3px solid var(--seal); }
+.reader blockquote { margin: 1.1em 1.2em; padding-left: 12px;
+  border-left: 2px solid var(--border); color: var(--soft); }
+.reader .meta-line { text-align: center; color: var(--soft); font-size: .78em;
+  letter-spacing: 3px; }
+.reader .src-footer { margin-top: 2.4em; padding-top: 12px; border-top: 1px solid var(--border);
+  font-size: .72em; color: var(--soft); line-height: 1.6; word-break: break-all; }
+.reader mark { background: var(--mark); color: var(--seal); padding: 0 2px; }
+.reader-nav { display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 14px 6px calc(env(safe-area-inset-bottom) + 16px);
+  border-top: 1px solid var(--border); }
+.reader-nav button { font-family: inherit; font-size: 14px; letter-spacing: 2px;
+  background: var(--card); border: 1px solid var(--border); color: var(--ink);
+  border-radius: 4px; padding: 9px 18px; cursor: pointer; }
+.reader-nav button:disabled { opacity: .35; }
+#juan-pos { font-size: 12.5px; color: var(--soft); letter-spacing: 2px; }
+
+/* ============ 检索 ============ */
+.search-box { display: flex; gap: 8px; margin: 18px 0 14px; position: sticky; top: 54px;
+  z-index: 10; background: var(--bg); padding: 8px 0; }
+#search-input { flex: 1; min-width: 0; font-family: inherit; font-size: 15px; color: var(--ink);
+  background: var(--card); border: 1px solid var(--border); border-radius: 4px;
+  padding: 10px 12px; outline: none; }
+#search-input:focus { border-color: var(--seal); }
+#btn-do-search { font-family: inherit; font-size: 15px; letter-spacing: 2px;
+  background: var(--seal); color: #fff; border: none; border-radius: 4px;
+  padding: 0 18px; cursor: pointer; }
+.scan-status { display: flex; align-items: center; gap: 10px; margin: 4px 0 10px;
+  font-size: 12px; color: var(--soft); }
+.scan-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.scan-bar i { display: block; height: 100%; width: 0; background: var(--seal); transition: width .2s; }
+.sr-group { margin: 16px 0 6px; font-size: 13px; color: var(--seal); letter-spacing: 1px; }
+.sr-item { padding: 10px 6px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 14px; line-height: 1.7; }
+.sr-item:active { background: var(--mark); }
+.sr-item .sr-j { color: var(--soft); font-size: 12px; margin-right: 8px; }
+.sr-item mark { background: var(--mark); color: var(--seal); }
+.search-empty { text-align: center; color: var(--soft); padding: 40px 0; font-size: 13.5px; letter-spacing: 2px; }
+
+/* ============ 书签 / 最近 ============ */
+.mark-item { display: flex; gap: 10px; align-items: baseline; padding: 12px 6px;
+  border-bottom: 1px solid var(--border); cursor: pointer; }
+.mark-item:active { background: var(--mark); }
+.mark-item .m-title { flex: 1; font-size: 15px; }
+.mark-item .m-juan { font-size: 12px; color: var(--soft); white-space: nowrap; }
+.mark-item .m-del { background: none; border: none; color: var(--soft); font-size: 16px; cursor: pointer; }
+.empty { text-align: center; color: var(--soft); padding: 46px 0; font-size: 13.5px; letter-spacing: 2px; }
+
+/* ============ 尾注 ============ */
+.about { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--soft); line-height: 1.9; text-align: center; }
+.about .ver { letter-spacing: 3px; margin-top: 4px; }
+
+/* ============ 底栏 ============ */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: flex; justify-content: space-around;
+  padding: 6px 0 calc(env(safe-area-inset-bottom) + 6px);
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  backdrop-filter: blur(10px); border-top: 1px solid var(--border); }
+.tabbar button { flex: 1; max-width: 120px; font-family: inherit; font-size: 14px;
+  letter-spacing: 4px; text-indent: 4px; background: none; border: none;
+  color: var(--soft); padding: 8px 0; cursor: pointer; }
+.tabbar button.on { color: var(--seal); font-weight: 700; }

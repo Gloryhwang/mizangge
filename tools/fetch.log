@@ -1,0 +1,16 @@
+范围内经目 541 部，总卷数 876
+[40/541] ok=108 skip=0 fail=0 74s
+[80/541] ok=178 skip=0 fail=0 122s
+FAIL T0946/3: HTTP Error 404: Not Found
+[120/541] ok=244 skip=0 fail=1 166s
+[160/541] ok=305 skip=0 fail=1 207s
+[200/541] ok=350 skip=0 fail=1 236s
+[240/541] ok=424 skip=0 fail=1 284s
+[280/541] ok=468 skip=0 fail=1 312s
+[320/541] ok=539 skip=0 fail=1 359s
+[360/541] ok=585 skip=0 fail=1 388s
+[400/541] ok=639 skip=0 fail=1 424s
+[440/541] ok=686 skip=0 fail=1 454s
+[480/541] ok=793 skip=0 fail=1 524s
+[520/541] ok=834 skip=0 fail=1 549s
+DONE ok=875 skip=0 fail=1 用时 578s

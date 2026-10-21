@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>密藏阁 · 东密离线藏经阁</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<header class="appbar" id="appbar">
+  <button class="iconbtn back" id="btn-back" hidden aria-label="返回">‹</button>
+  <div class="appbar-title" id="appbar-title">密藏阁</div>
+  <div class="appbar-actions">
+    <button class="iconbtn" id="btn-search" aria-label="检索" hidden>⌕</button>
+    <button class="iconbtn" id="btn-theme" aria-label="夜间模式">☾</button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ 目录 ============ -->
+  <section class="view" id="view-catalog">
+    <div class="brand">
+      <div class="brand-seal" aria-hidden="true"><span>密</span><span>藏</span><span>阁</span><span>印</span></div>
+      <h1 class="brand-name">密藏阁</h1>
+      <p class="brand-sub">东密离线藏经阁 · 密教部全文<br>数据 CBETA 底本 · 离线可读</p>
+    </div>
+    <div class="recent" id="recent" hidden>
+      <div class="sec-label">最近阅读</div>
+      <div id="recent-list"></div>
+    </div>
+    <div class="sec-label">经目目录</div>
+    <div id="catalog"></div>
+    <footer class="about">
+      <p>数据来源：CBETA 电子佛典（deerpark.app 底本 API）<br>收大正藏密教部 T848–T1420 全部，附《大日经疏》《菩提心论》《理趣经》</p>
+      <p class="ver">密藏阁 v1.1</p>
+    </footer>
+  </section>
+
+  <!-- ============ 阅读 ============ -->
+  <section class="view" id="view-reader" hidden>
+    <div class="reader-tools">
+      <button class="toolbtn" id="btn-fs-dec" aria-label="减小字号">A−</button>
+      <button class="toolbtn" id="btn-fs-inc" aria-label="增大字号">A＋</button>
+      <button class="toolbtn" id="btn-mark" aria-label="加书签">☆ 签</button>
+      <select id="juan-select" aria-label="选择卷次"></select>
+    </div>
+    <article class="reader" id="reader-body"></article>
+    <div class="reader-nav">
+      <button id="btn-prev">上一卷</button>
+      <span id="juan-pos"></span>
+      <button id="btn-next">下一卷</button>
+    </div>
+  </section>
+
+  <!-- ============ 检索 ============ -->
+  <section class="view" id="view-search" hidden>
+    <div class="search-box">
+      <input id="search-input" type="search" placeholder="全文检索（简繁皆可）" enterkeyhint="search">
+      <button id="btn-do-search">检</button>
+    </div>
+    <div class="scan-status" id="scan-status" hidden><div class="scan-bar"><i id="scan-fill"></i></div><span id="scan-text"></span></div>
+    <div id="search-results"></div>
+  </section>
+
+  <!-- ============ 书签 ============ -->
+  <section class="view" id="view-marks" hidden>
+    <div class="sec-label">我的书签</div>
+    <div id="marks-list"></div>
+  </section>
+
+</main>
+
+<nav class="tabbar" id="tabbar">
+  <button data-go="catalog" class="on">目录</button>
+  <button data-go="search">检索</button>
+  <button data-go="marks">书签</button>
+</nav>
+
+<script src="app.js"></script>
+</body>
+</html>
