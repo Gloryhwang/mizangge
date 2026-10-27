@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -19,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * 密藏阁 — 零依赖 WebView 壳。
- * 用 https://mzg.local/ 虚拟域映射 assets/www/，使前端 fetch 同源可用。
+ * 用 https://mzg.local/ 虚拟域映射 assets/ 根目录，使前端 fetch 同源可用。
  */
 public class MainActivity extends Activity {
 
@@ -71,6 +72,18 @@ public class MainActivity extends Activity {
         public void setTheme(String theme) {
             runOnUiThread(() -> paintStatusBar(theme));
         }
+
+        /** 屏幕亮度：0.02–1.0（仅影响本应用窗口） */
+        @JavascriptInterface
+        public void setBrightness(float v) {
+            final float val = Math.max(0.02f, Math.min(1f, v));
+            runOnUiThread(() -> {
+                Window w = getWindow();
+                WindowManager.LayoutParams lp = w.getAttributes();
+                lp.screenBrightness = val;
+                w.setAttributes(lp);
+            });
+        }
     }
 
     /** 虚拟域资源拦截：https://mzg.local/xyz → assets/www/xyz */
@@ -87,7 +100,7 @@ public class MainActivity extends Activity {
             if (path.isEmpty()) path = "index.html";
             if (path.contains("..")) return notFound();
             try {
-                InputStream is = getAssets().open("www/" + path);
+                InputStream is = getAssets().open(path);
                 String mime = mimeOf(path);
                 return new WebResourceResponse(mime, mime.startsWith("text/") || mime.contains("javascript")
                         ? "utf-8" : null, is);

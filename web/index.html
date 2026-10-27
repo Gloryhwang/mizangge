@@ -14,6 +14,7 @@
   <div class="appbar-title" id="appbar-title">密藏阁</div>
   <div class="appbar-actions">
     <button class="iconbtn" id="btn-search" aria-label="检索" hidden>⌕</button>
+    <button class="iconbtn" id="btn-simp" aria-label="繁简切换">繁</button>
     <button class="iconbtn" id="btn-theme" aria-label="夜间模式">☾</button>
   </div>
 </header>
@@ -34,8 +35,8 @@
     <div class="sec-label">经目目录</div>
     <div id="catalog"></div>
     <footer class="about">
-      <p>数据来源：CBETA 电子佛典（deerpark.app 底本 API）<br>收大正藏密教部 T848–T1420 全部，附《大日经疏》《菩提心论》《理趣经》</p>
-      <p class="ver">密藏阁 v1.1</p>
+      <p>数据来源：CBETA 电子佛典<br>收大正藏密教部 T848–T1420 全部，附《大日经疏》《菩提心论》《理趣经》</p>
+      <p class="ver">密藏阁 v1.1.3</p>
     </footer>
   </section>
 
@@ -44,7 +45,10 @@
     <div class="reader-tools">
       <button class="toolbtn" id="btn-fs-dec" aria-label="减小字号">A−</button>
       <button class="toolbtn" id="btn-fs-inc" aria-label="增大字号">A＋</button>
+      <button class="toolbtn" id="btn-vert" aria-label="竖排横排切换">竖</button>
       <button class="toolbtn" id="btn-mark" aria-label="加书签">☆ 签</button>
+      <button class="toolbtn" id="btn-bright" aria-label="亮度">☾</button>
+      <input type="range" id="bright-range" min="10" max="100" value="100" aria-label="屏幕亮度" hidden>
       <select id="juan-select" aria-label="选择卷次"></select>
     </div>
     <article class="reader" id="reader-body"></article>

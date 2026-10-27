@@ -16,6 +16,8 @@ const S = {
   reader: null,           // {work, volFile, juan}
   term: '',
   fs: store.get('mzg-fs', 19),
+  simp: store.get('mzg-simp', false),   // 简体显示模式
+  vert: store.get('mzg-vert', false),   // 竖排书模式
   scanning: false
 };
 
@@ -29,6 +31,38 @@ function applyTheme(t) {
 $('#btn-theme').onclick = () =>
   applyTheme(document.documentElement.dataset.theme === 'ink' ? 'light' : 'ink');
 applyTheme(store.get('mzg-theme', 'light'));
+
+/* ---------- 繁→简 显示切换 ---------- */
+let T2S = null;   // 繁字 -> 简字 映射（由 s2t.json 反转生成）
+function buildT2S(s2t) {
+  const t = {};
+  for (const [simp, trad] of Object.entries(s2t.map || {})) t[trad] = simp;
+  for (const [simp, arr] of Object.entries(s2t.multi || {})) arr.forEach(trad => { if (!(trad in t)) t[trad] = simp; });
+  return t;
+}
+async function ensureT2S() {
+  const s2t = await loadS2T();
+  if (!T2S) T2S = buildT2S(s2t);
+  return T2S;
+}
+/** 显示层文本：简体模式下繁→简逐字转换 */
+function disp(s) {
+  if (!S.simp || !T2S || !s) return s;
+  let out = '';
+  for (const ch of s) out += (T2S[ch] || ch);
+  return out;
+}
+function applySimpUI() { $('#btn-simp').textContent = S.simp ? '简' : '繁'; }
+$('#btn-simp').onclick = async () => {
+  S.simp = !S.simp;
+  store.set('mzg-simp', S.simp);
+  applySimpUI();
+  if (S.simp) await ensureT2S();
+  renderCatalog();
+  if (S.view === 'reader' && S.reader) { $('#appbar-title').textContent = disp(S.reader.work.title); renderJuan(); }
+  else if (S.view === 'search' && S.term) doSearch();
+};
+applySimpUI();
 
 /* 原生壳：返回键协议（阅读器→目录，其余交给系统退出） */
 window.mzgBack = function () {
@@ -50,6 +84,8 @@ function go(view, push = true) {
     ? (S.reader ? S.reader.work.title : $('#appbar-title').textContent)
     : TITLES[view];
   $('#tabbar').hidden = inReader;
+  if (view === 'marks') renderMarks();
+  syncVert();
   if (push && view !== 'reader') store.set('mzg-last-view', view);
   window.scrollTo(0, 0);
 }
@@ -74,6 +110,7 @@ async function loadVol(vf) {
 function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 function renderCatalog() {
+  const openVols = new Set(Array.from($$('#catalog .volgroup.open'), el => el.dataset.vol));
   const byVol = {};
   S.index.works.forEach(w => (byVol[w.vol] = byVol[w.vol] || []).push(w));
   const order = Object.keys(S.index.vols).sort((a, b) =>
@@ -84,13 +121,13 @@ function renderCatalog() {
     const ws = byVol[v] || [];
     if (!ws.length) continue;
     const label = v === 0 ? '附收 · 论疏三种' : meta.name;
-    html += `<div class="volgroup" data-vol="${v}">
-      <div class="volhead"><b>${label}</b><small>${ws.length} 部 · ${fmtChars(meta.chars)}字</small></div>
+    html += `<div class="volgroup${openVols.has(String(v)) ? ' open' : ''}" data-vol="${v}">
+      <div class="volhead"><b>${disp(label)}</b><small>${ws.length} 部 · ${fmtChars(meta.chars)}字</small></div>
       <div class="volbody">`;
     for (const w of ws) {
       html += `<div class="work" data-id="${w.id}">
         <span class="tno">${w.id.replace('T0', 'T')}</span>
-        <span class="tname">${esc(w.title)}</span>
+        <span class="tname">${esc(disp(w.title))}</span>
         <span class="tmeta">${w.juans.length}卷</span></div>`;
     }
     html += '</div></div>';
@@ -119,7 +156,7 @@ async function openReader(id, juan, term) {
   const work = findWork(id);
   if (!work) return;
   const vf = String(work.vol) === '0' ? 'vol00' : 'vol' + work.vol;
-  $('#appbar-title').textContent = work.title;
+  $('#appbar-title').textContent = disp(work.title);
   go('reader');
   $('#reader-body').innerHTML = '<p style="text-align:center;color:var(--soft)">…</p>';
   try {
@@ -133,12 +170,7 @@ async function openReader(id, juan, term) {
   renderJuan();
   // 恢复滚动位置（仅当是该卷）
   const pos = store.get('pos:' + id, {});
-  if (pos.juan === juan && pos.ratio) {
-    requestAnimationFrame(() => {
-      const h = document.documentElement.scrollHeight - window.innerHeight;
-      window.scrollTo(0, h * pos.ratio);
-    });
-  }
+  if (pos.juan === juan && pos.ratio) requestAnimationFrame(() => setScrollRatio(pos.ratio));
   pushRecent(id, juan);
 }
 
@@ -146,7 +178,7 @@ function renderJuan() {
   const { work, volFile, juan } = S.reader;
   const entry = (S.volCache[volFile] || []).find(e => e.id === work.id && e.juan === juan);
   if (!entry) { $('#reader-body').innerHTML = '<p>未找到该卷文本。</p>'; return; }
-  $('#reader-body').innerHTML = mdRender(entry.md);
+  $('#reader-body').innerHTML = mdRender(disp(entry.md));
   if (S.reader.term) highlight($('#reader-body'), S.reader.term);
 
   const js = work.juans;
@@ -158,6 +190,8 @@ function renderJuan() {
   sel.innerHTML = js.map(j =>
     `<option value="${j}" ${j === juan ? 'selected' : ''}>${juanLabel(j)}</option>`).join('');
   window.scrollTo(0, 0);
+  if (S.vert) requestAnimationFrame(() => vertStart($('#reader-body')));
+  else $('#reader-body').scrollLeft = 0;
 }
 
 $('#juan-select').onchange = e => { S.reader.juan = +e.target.value; renderJuan(); };
@@ -177,17 +211,80 @@ $('#btn-fs-inc').onclick = () => { S.fs = Math.min(28, S.fs + 1); applyFS(); };
 $('#btn-fs-dec').onclick = () => { S.fs = Math.max(14, S.fs - 1); applyFS(); };
 applyFS();
 
-/* 滚动位置记忆 */
-let scrollTimer = null;
-window.addEventListener('scroll', () => {
-  if (S.view !== 'reader' || !S.reader) return;
-  clearTimeout(scrollTimer);
-  scrollTimer = setTimeout(() => {
+/* ---------- 滚动位置记忆（横排走窗口，竖排走阅读容器） ---------- */
+/* 竖排 scrollLeft 语义因内核而异：新版 Chromium 负值域（0=最右起点），
+   部分内核正值域（0=最左）。首次使用时探测并缓存，读写全部走统一换算。 */
+let vertNeg = null;   // null=未探测
+function vertMax(el) { return el.scrollWidth - el.clientWidth; }
+function vertDomainNeg(el) {
+  if (vertNeg !== null) return vertNeg;
+  const max = vertMax(el);
+  if (max <= 0) return true;
+  el.scrollLeft = -max;
+  if (el.scrollLeft === -max) { vertNeg = true; el.scrollLeft = 0; }
+  else { vertNeg = false; el.scrollLeft = max; }
+  return vertNeg;
+}
+function vertStart(el) { el.scrollLeft = vertDomainNeg(el) ? 0 : vertMax(el); }
+function vertRatio(el) {
+  const max = vertMax(el);
+  if (max <= 0) return 0;
+  return vertDomainNeg(el) ? (-el.scrollLeft) / max : el.scrollLeft / max;
+}
+function vertSetRatio(el, r) {
+  const max = vertMax(el);
+  el.scrollLeft = vertDomainNeg(el) ? -max * r : max * r;
+}
+function scrollRatio() {
+  if (!S.vert) {
     const h = document.documentElement.scrollHeight - window.innerHeight;
-    const ratio = h > 0 ? +(window.scrollY / h).toFixed(4) : 0;
-    store.set('pos:' + S.reader.work.id, { juan: S.reader.juan, ratio });
-  }, 350);
-});
+    return h > 0 ? window.scrollY / h : 0;
+  }
+  return vertRatio($('#reader-body'));
+}
+function setScrollRatio(r) {
+  if (!S.vert) {
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo(0, h * r);
+  } else {
+    vertSetRatio($('#reader-body'), r);
+  }
+}
+let scrollTimer = null;
+function savePos() {
+  if (S.view !== 'reader' || !S.reader) return;
+  store.set('pos:' + S.reader.work.id, { juan: S.reader.juan, ratio: +scrollRatio().toFixed(4) });
+}
+window.addEventListener('scroll', () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(savePos, 350); });
+$('#reader-body').addEventListener('scroll', () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(savePos, 350); });
+
+/* ---------- 竖排 / 横排书 ---------- */
+function syncVert() {
+  $('#btn-vert').classList.toggle('on', S.vert);
+  document.documentElement.classList.toggle('vert', S.vert && S.view === 'reader');
+}
+$('#btn-vert').onclick = () => {
+  const inReader = S.view === 'reader' && S.reader;
+  const ratio = inReader ? scrollRatio() : null;
+  S.vert = !S.vert;
+  store.set('mzg-vert', S.vert);
+  syncVert();
+  if (inReader) requestAnimationFrame(() => setScrollRatio(ratio));
+};
+
+/* ---------- 亮度 ---------- */
+function setBright(v, save) {
+  v = Math.max(10, Math.min(100, v));
+  $('#bright-range').value = v;
+  if (save) store.set('mzg-bright', v);
+  let native = false;
+  try { if (window.MzgNative && window.MzgNative.setBrightness) { window.MzgNative.setBrightness(v / 100); native = true; } } catch {}
+  document.documentElement.style.filter = (!native && v < 100)
+    ? `brightness(${(0.35 + 0.65 * v / 100).toFixed(3)})` : '';
+}
+$('#btn-bright').onclick = () => { $('#bright-range').hidden = !$('#bright-range').hidden; };
+$('#bright-range').oninput = e => setBright(+e.target.value, true);
+setBright(store.get('mzg-bright', 100), false);
 
 /* ---------- 迷你 Markdown 渲染 ---------- */
 function inline(s) {
@@ -282,7 +379,7 @@ function renderMarks() {
   const marks = store.get('mzg-marks', []);
   if (!marks.length) { $('#marks-list').innerHTML = '<div class="empty">尚无书签 · 阅读时点「☆ 签」</div>'; return; }
   $('#marks-list').innerHTML = marks.map((m, i) =>
-    `<div class="mark-item" data-i="${i}"><span class="m-title">${esc(m.title)}</span>
+    `<div class="mark-item" data-i="${i}"><span class="m-title">${esc(disp(m.title))}</span>
      <span class="m-juan">${juanLabel(m.juan)}</span>
      <button class="m-del" data-i="${i}" aria-label="删除">×</button></div>`).join('');
   $$('#marks-list .mark-item').forEach(el => el.onclick = e => {
@@ -313,7 +410,7 @@ function renderRecent() {
   box.querySelector('#recent-list').innerHTML = rec.map(r => {
     const w = findWork(r.id); if (!w) return '';
     return `<div class="work" data-id="${w.id}"><span class="tno">${w.id.replace('T0', 'T')}</span>
-      <span class="tname">${esc(w.title)}</span>
+      <span class="tname">${esc(disp(w.title))}</span>
       <span class="tmeta">${juanLabel(r.juan)}</span></div>`;
   }).join('');
   $$('#recent-list .work').forEach(el => el.onclick = () => openReader(el.dataset.id));
@@ -422,10 +519,10 @@ function renderResults(term, results) {
   let html = `<div class="sr-group">检得 ${results.length} 处 · ${Object.keys(byWork).length} 部</div>`;
   for (const key of Object.keys(byWork)) {
     const [id, title] = key.split('|');
-    html += `<div class="sr-group">${id.replace('T0', 'T')} ${esc(title)}</div>`;
+    html += `<div class="sr-group">${id.replace('T0', 'T')} ${esc(disp(title))}</div>`;
     for (const r of byWork[key]) {
-      const v = r.v || term;
-      const snip = esc(r.snip).split(v).join('<mark>' + esc(v) + '</mark>');
+      const v = disp(r.v || term);
+      const snip = esc(disp(r.snip)).split(v).join('<mark>' + esc(v) + '</mark>');
       html += `<div class="sr-item" data-id="${r.id}" data-juan="${r.juan}">
         <span class="sr-j">${juanLabel(r.juan)}</span>${snip}</div>`;
     }
@@ -439,6 +536,7 @@ function renderResults(term, results) {
 (async function init() {
   try {
     S.index = await loadJSON('data/index.json');
+    if (S.simp) await ensureT2S();
     renderCatalog();
     const last = store.get('mzg-last-view', 'catalog');
     go(last === 'reader' ? 'catalog' : last);
