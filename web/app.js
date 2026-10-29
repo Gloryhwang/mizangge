@@ -323,6 +323,11 @@ function mdRender(md) {
       html += `<p class="byline">${inline(line)}</p>`; continue;
     }
     if (/^No\.\s*\d+$/.test(line) || /^[（(]\d+[)）]$/.test(line)) { flush(); html += `<div class="meta-line">${inline(line)}</div>`; continue; }
+    if (/^!\[\]\(data\/figures\/[\w.-]+\)$/.test(line)) {   /* 经文原图（v1.2.0） */
+      flush(); endQuote();
+      html += `<figure class="fig"><img src="${line.slice(4, -1)}" alt="经文原图" loading="lazy" decoding="async"></figure>`;
+      continue;
+    }
     if (footer) {
       flush();
       buf.push(line);
@@ -531,6 +536,33 @@ function renderResults(term, results) {
   $$('#search-results .sr-item').forEach(el =>
     el.onclick = () => openReader(el.dataset.id, +el.dataset.juan, term));
 }
+
+/* ---------- 经图点击放大（v1.2.0） ---------- */
+(function () {
+  let ov = null, big = null;
+  function open(src) {
+    if (!ov) {
+      ov = document.createElement('div'); ov.id = 'figbox';
+      const wrap = document.createElement('div'); wrap.className = 'fb-wrap';
+      big = document.createElement('img'); big.alt = '经文原图';
+      big.onclick = () => { big.classList.toggle('z2'); };        /* 点图缩放切换 */
+      const x = document.createElement('button'); x.id = 'figbox-x'; x.textContent = '×';
+      x.setAttribute('aria-label', '关闭');
+      x.onclick = e => { e.stopPropagation(); ov.hidden = true; };
+      wrap.appendChild(big);
+      ov.appendChild(wrap); ov.appendChild(x);
+      ov.onclick = e => { if (e.target === wrap || e.target === ov) ov.hidden = true; };
+      document.body.appendChild(ov);
+    }
+    big.classList.remove('z2');
+    big.src = src;
+    ov.hidden = false;
+  }
+  document.addEventListener('click', e => {
+    const t = e.target;
+    if (t instanceof HTMLImageElement && t.closest('.fig')) { e.preventDefault(); open(t.src); }
+  });
+})();
 
 /* ---------- 启动 ---------- */
 (async function init() {

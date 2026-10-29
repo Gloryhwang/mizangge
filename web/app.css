@@ -7,11 +7,15 @@
   font-family: 'MZGHana'; src: url('fonts/mzghana.woff2') format('woff2');
   font-weight: 400; font-style: normal; font-display: swap;
 }
+@font-face {
+  font-family: 'MZGExt'; src: url('fonts/mzgext.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
 :root {
   --bg: #f5efe2; --card: #fcf9f1; --ink: #2e2b23; --soft: #6e6858;
   --border: #ddd3bf; --seal: #a53c2a; --mark: rgba(165,60,42,.14);
   --fs: 19px;
-  --serif: "MZGSong", "MZGHana", "LXGW WenKai", "Noto Serif SC", "Noto Serif CJK SC", serif;
+  --serif: "MZGSong", "MZGHana", "MZGExt", "LXGW WenKai", "Noto Serif SC", "Noto Serif CJK SC", serif;
 }
 [data-theme="ink"] {
   --bg: #000000; --card: #14120d; --ink: #e6ddc8; --soft: #8a8271;
@@ -165,6 +169,27 @@ html.vert .reader { flex: 1; min-height: 0; width: 100%; writing-mode: vertical-
   -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 html.vert .reader::-webkit-scrollbar { display: none; }
 html.vert .reader-nav { flex-shrink: 0; }
+
+/* ============ 经文原图（v1.2.0） ============ */
+.fig { margin: 16px 0; text-align: center; }
+.fig img { max-width: 100%; max-height: 62vh; object-fit: contain;
+  cursor: zoom-in; border: 1px solid var(--border); background: #fff; }
+[data-theme="ink"] .fig img { filter: brightness(.84); }
+html.vert .fig { margin: 0 14px; }
+html.vert .fig img { max-height: 56vh; max-width: 52vw; }
+
+/* ============ 经图放大层 ============ */
+#figbox { position: fixed; inset: 0; z-index: 90; background: #000;
+  overflow: auto; -webkit-overflow-scrolling: touch; }
+#figbox .fb-wrap { display: flex; min-height: 100%; min-width: 100%; }
+#figbox img { margin: auto; max-width: 94vw; max-height: 94vh;
+  object-fit: contain; cursor: zoom-in; }
+#figbox img.z2 { max-width: none; max-height: none;
+  width: min(200vw, 400vh); cursor: zoom-out; }
+#figbox-x { position: absolute; top: calc(env(safe-area-inset-top) + 14px);
+  right: 16px; width: 44px; height: 44px; border: none; border-radius: 50%;
+  background: rgba(255,255,255,.18); color: #fff; font-size: 26px;
+  line-height: 1; cursor: pointer; }
 
 /* ============ 亮度滑杆 ============ */
 #bright-range { width: 110px; accent-color: var(--seal); cursor: pointer; }
