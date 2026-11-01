@@ -1,10 +1,17 @@
 package app.mikkyo.mizangge;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Insets;
+import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
@@ -12,6 +19,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -31,7 +39,25 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         web = new WebView(this);
-        setContentView(web);
+        FrameLayout root = new FrameLayout(this);
+        root.addView(web, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        setContentView(root);
+
+        /* Android 15+（targetSdk 35 起）强制 edge-to-edge：
+           内容避让系统栏 / 挖孔 / 输入法，旧系统行为不变 */
+        root.setOnApplyWindowInsetsListener((v, in) -> {
+            if (Build.VERSION.SDK_INT >= 30) {
+                Insets sb = in.getInsets(WindowInsets.Type.systemBars()
+                        | WindowInsets.Type.displayCutout()
+                        | WindowInsets.Type.ime());
+                v.setPadding(sb.left, sb.top, sb.right, sb.bottom);
+                return WindowInsets.CONSUMED;
+            }
+            v.setPadding(in.getSystemWindowInsetLeft(), in.getSystemWindowInsetTop(),
+                    in.getSystemWindowInsetRight(), in.getSystemWindowInsetBottom());
+            return in.consumeSystemWindowInsets();
+        });
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
@@ -57,14 +83,27 @@ public class MainActivity extends Activity {
     private void paintStatusBar(String theme) {
         Window w = getWindow();
         boolean ink = "ink".equals(theme);
-        w.setStatusBarColor(Color.parseColor(ink ? "#000000" : "#f5efe2"));
-        int flags = w.getDecorView().getSystemUiVisibility();
-        if (ink) {
-            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        int bg = Color.parseColor(ink ? "#000000" : "#f5efe2");
+        /* edge-to-edge 下系统栏透出窗口背景，同步着色避免色差条 */
+        w.setBackgroundDrawable(new ColorDrawable(bg));
+        w.setStatusBarColor(bg);        /* API < 35 生效，其后由窗口背景接管 */
+        w.setNavigationBarColor(bg);
+        if (Build.VERSION.SDK_INT >= 30) {
+            WindowInsetsController c = w.getInsetsController();
+            if (c != null) {
+                int mask = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                        | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+                c.setSystemBarsAppearance(ink ? 0 : mask, mask);
+            }
         } else {
-            flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            int flags = w.getDecorView().getSystemUiVisibility();
+            if (ink) {
+                flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            } else {
+                flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            }
+            w.getDecorView().setSystemUiVisibility(flags);
         }
-        w.getDecorView().setSystemUiVisibility(flags);
     }
 
     private class Bridge {
@@ -88,6 +127,18 @@ public class MainActivity extends Activity {
 
     /** 虚拟域资源拦截：https://mzg.local/xyz → assets/www/xyz */
     private class LocalClient extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest req) {
+            /* 外链（GitHub 等）交给系统浏览器，不落进壳内被拦成 404 */
+            if (!req.getUrl().toString().startsWith(HOST)) {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, req.getUrl()));
+                } catch (Exception ignored) {}
+                return true;
+            }
+            return false;
+        }
+
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
             return serve(req);

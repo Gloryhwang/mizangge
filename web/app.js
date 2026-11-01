@@ -576,3 +576,31 @@ function renderResults(term, results) {
     $('#catalog').innerHTML = '<div class="empty">数据未就绪：' + esc(e.message) + '</div>';
   }
 })();
+
+/* ---------- 随喜支持（v1.2.1） ---------- */
+(function () {
+  const btn = document.getElementById('btn-support');
+  const box = document.getElementById('supportbox');
+  const qrBox = document.getElementById('support-qr');
+  if (!btn || !box) return;
+  function renderQR(src, label) {
+    const im = new Image();
+    im.onload = () => {
+      const d = document.createElement('div'); d.className = 'qr-item';
+      d.appendChild(im);
+      const s = document.createElement('span'); s.textContent = label;
+      d.appendChild(s); qrBox.appendChild(d);
+    };
+    im.src = src;   /* 404 则静默跳过，弹层退化为纯文案 */
+  }
+  btn.addEventListener('click', () => {
+    if (!qrBox.dataset.tried) {
+      qrBox.dataset.tried = '1';
+      renderQR('img/support-wechat.png', '微信');
+      renderQR('img/support-alipay.png', '支付宝');
+    }
+    box.hidden = false;
+  });
+  document.getElementById('support-x').onclick = () => { box.hidden = true; };
+  box.addEventListener('click', e => { if (e.target === box) box.hidden = true; });
+})();

@@ -204,3 +204,29 @@ html.vert .fig img { max-height: 56vh; max-width: 52vw; }
   letter-spacing: 4px; text-indent: 4px; background: none; border: none;
   color: var(--soft); padding: 8px 0; cursor: pointer; }
 .tabbar button.on { color: var(--seal); font-weight: 700; }
+
+/* ============ 随喜支持（v1.2.1） ============ */
+#btn-support { background: none; border: 1px solid var(--border); color: var(--soft);
+  font-family: var(--serif); font-size: 13px; padding: 8px 26px; border-radius: 22px;
+  letter-spacing: 4px; cursor: pointer; }
+#btn-support:active { background: var(--mark); }
+#supportbox { position: fixed; inset: 0; z-index: 80; background: rgba(20,17,12,.58);
+  display: flex; align-items: center; justify-content: center; padding: 28px; }
+#supportbox[hidden] { display: none; }
+.support-card { position: relative; background: var(--card); color: var(--ink);
+  max-width: 340px; width: 100%; border: 1px solid var(--border); border-radius: 14px;
+  padding: 30px 26px 24px; text-align: center; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+.support-card h3 { margin: 0 0 14px; font-family: var(--serif); font-size: 19px;
+  letter-spacing: 6px; color: var(--seal); font-weight: 500; }
+.support-lead { font-size: 13.5px; line-height: 2; color: var(--soft); margin: 0 0 16px; }
+#support-qr { display: flex; gap: 14px; justify-content: center; margin-bottom: 6px; }
+#support-qr:empty { display: none; }
+.qr-item { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.qr-item img { width: 132px; height: 132px; object-fit: contain; border-radius: 10px;
+  border: 1px solid var(--border); background: #fff; }
+.qr-item span { font-size: 12px; color: var(--soft); letter-spacing: 2px; }
+.support-alt { font-size: 12.5px; color: var(--soft); margin: 10px 0 4px; }
+.support-link { color: var(--seal); text-decoration: none; font-size: 13px;
+  border-bottom: 1px solid var(--mark); }
+#support-x { position: absolute; top: 10px; right: 12px; background: none; border: none;
+  color: var(--soft); font-size: 22px; cursor: pointer; padding: 4px 8px; line-height: 1; }
